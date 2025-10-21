@@ -107,7 +107,7 @@ export function mapModel(anthropicModel: string): string {
   } else if (anthropicModel.includes("sonnet")) {
     return "z-ai/glm-4.6";
   } else if (anthropicModel.includes("opus")) {
-    return "z-ai/glm-4.6";
+    return "tngtech/deepseek-r1t2-chimera:free";
   }
   return anthropicModel;
 }
@@ -235,19 +235,34 @@ export function formatAnthropicToOpenAI(body: MessageCreateParamsBase): any {
         },
       ];
 
+  const mappedModel = mapModel(model);
   const data: any = {
-    model: mapModel(model),
+    model: mappedModel,
     messages: [...systemMessages, ...openAIMessages],
     temperature,
     stream,
-    provider: {
+  };
+
+  const modelProviderConfigs = {
+    "z-ai/glm-4.6": {
       only: ["z-ai"],
       ignore: ["deepinfra", "chutes", "novita"],
       allow_fallbacks: false,
       data_collection: "deny",
       zdr: true,
     },
+    "tngtech/deepseek-r1t2-chimera:free": {
+      only: ["chutes"],
+      ignore: ["deepinfra", "novita"],
+      allow_fallbacks: false,
+      data_collection: "allow",
+      zdr: false,
+    },
   };
+
+  if (modelProviderConfigs[mappedModel]) {
+    data.provider = modelProviderConfigs[mappedModel];
+  }
 
   if (tools) {
     data.tools = tools.map((item: any) => ({
