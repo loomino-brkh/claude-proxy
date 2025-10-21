@@ -4,20 +4,20 @@ set -e
 
 install_nodejs() {
     local platform=$(uname -s)
-    
+
     case "$platform" in
         Linux|Darwin)
             echo "🚀 Installing Node.js on Unix/Linux/macOS..."
-            
+
             echo "📥 Downloading and installing nvm..."
             curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash
-            
+
             echo "🔄 Loading nvm environment..."
             \\. "$HOME/.nvm/nvm.sh"
-            
+
             echo "📦 Downloading and installing Node.js v22..."
             nvm install 22
-            
+
             echo -n "✅ Node.js installation completed! Version: "
             node -v # Should print "v22.17.0".
             echo -n "✅ Current nvm version: "
@@ -36,7 +36,7 @@ install_nodejs() {
 if command -v node >/dev/null 2>&1; then
     current_version=$(node -v | sed 's/v//')
     major_version=$(echo $current_version | cut -d. -f1)
-    
+
     if [ "$major_version" -ge 18 ]; then
         echo "Node.js is already installed: v$current_version"
     else
@@ -59,7 +59,7 @@ fi
 # Configure Claude Code to skip onboarding
 echo "Configuring Claude Code to skip onboarding..."
 node --eval '
-    const homeDir = os.homedir(); 
+    const homeDir = os.homedir();
     const filePath = path.join(homeDir, ".claude.json");
     if (fs.existsSync(filePath)) {
         const content = JSON.parse(fs.readFileSync(filePath, "utf-8"));
@@ -80,7 +80,7 @@ echo ""
 case "$provider_choice" in
     1)
         provider="openrouter"
-        default_base_url="https://cc.yovy.app"
+        default_base_url="https://cc.brkh.work"
         api_key_url="https://openrouter.ai/keys"
         default_model_main="anthropic/claude-sonnet-4"
         default_model_small="anthropic/claude-3.5-haiku"
@@ -93,7 +93,7 @@ case "$provider_choice" in
         echo ""
         read -p "Enter your choice [1]: " moonshot_endpoint_choice
         moonshot_endpoint_choice=\${moonshot_endpoint_choice:-1}
-        
+
         case "$moonshot_endpoint_choice" in
             1)
                 default_base_url="https://api.moonshot.ai/anthropic/"
@@ -112,13 +112,13 @@ case "$provider_choice" in
                 pricing_url="https://platform.moonshot.ai/docs/pricing/limits"
                 ;;
         esac
-        
+
         echo ""
         echo "⚠️  Important: Moonshot requires account credit before use"
         echo "   You must add funds to your account first, otherwise you'll get rate limit errors"
         echo "   Pricing info: $pricing_url"
         echo ""
-        
+
         default_model_main="kimi-k2-0711-preview"
         default_model_small="moonshot-v1-8k"
         ;;
@@ -207,6 +207,6 @@ echo "🚀 Then you can start using Claude Code with:"
 echo "   claude"
 echo ""
 echo "💡 Tip: To maintain multiple configurations, use shell aliases:"
-echo "   alias c1='ANTHROPIC_BASE_URL=\\"https://cc.yovy.app\\" ANTHROPIC_API_KEY=\\"key1\\" ANTHROPIC_MODEL=\\"moonshotai/kimi-k2\\" ANTHROPIC_SMALL_FAST_MODEL=\\"google/gemini-2.5-flash\\" claude'"
+echo "   alias c1='ANTHROPIC_BASE_URL=\\"https://cc.brkh.work\\" ANTHROPIC_API_KEY=\\"key1\\" ANTHROPIC_MODEL=\\"moonshotai/kimi-k2\\" ANTHROPIC_SMALL_FAST_MODEL=\\"google/gemini-2.5-flash\\" claude'"
 echo "   alias c2='ANTHROPIC_BASE_URL=\\"https://api.moonshot.ai/anthropic/\\" ANTHROPIC_API_KEY=\\"key2\\" ANTHROPIC_MODEL=\\"kimi-k2-0711-preview\\" ANTHROPIC_SMALL_FAST_MODEL=\\"moonshot-v1-8k\\" claude'"
 `;

@@ -1,4 +1,4 @@
-import { faviconDataUrl } from './faviconServer';
+import { faviconDataUrl } from "./faviconServer";
 
 export const indexHtml = `<!DOCTYPE html>
 <html lang="en">
@@ -178,8 +178,8 @@ export const indexHtml = `<!DOCTYPE html>
             <div class="step">
                 <h2><span class="step-number">⚡</span>One-line Install (Recommended)</h2>
                 <div class="code-block-wrapper">
-                    <div class="code-block">bash -c "$(curl -fsSL https://cc.yovy.app/install.sh)"</div>
-                    <button class="copy-button" onclick="copyToClipboard(this, 'bash -c &quot;$(curl -fsSL https://cc.yovy.app/install.sh)&quot;')">Copy</button>
+                    <div class="code-block">bash -c "$(curl -fsSL https://cc.brkh.work/install.sh)"</div>
+                    <button class="copy-button" onclick="copyToClipboard(this, 'bash -c &quot;$(curl -fsSL https://cc.brkh.work/install.sh)&quot;')">Copy</button>
                 </div>
                 <div class="note">This script will automatically install Node.js, Claude Code, and configure your environment with OpenRouter or Moonshot</div>
             </div>
@@ -202,9 +202,9 @@ export const indexHtml = `<!DOCTYPE html>
                 <h2><span class="step-number">3</span>Manual: Configure</h2>
                 <p>Add these to your shell config (<code>~/.bashrc</code> or <code>~/.zshrc</code>):</p>
                 <div class="code-block-wrapper">
-                    <div class="code-block">export ANTHROPIC_BASE_URL="https://cc.yovy.app"<br>
+                    <div class="code-block">export ANTHROPIC_BASE_URL="https://cc.brkh.work"<br>
 export ANTHROPIC_API_KEY="your-openrouter-api-key"</div>
-                    <button class="copy-button" onclick="copyToClipboard(this, 'export ANTHROPIC_BASE_URL=&quot;https://cc.yovy.app&quot;\\nexport ANTHROPIC_API_KEY=&quot;your-openrouter-api-key&quot;')">Copy</button>
+                    <button class="copy-button" onclick="copyToClipboard(this, 'export ANTHROPIC_BASE_URL=&quot;https://cc.brkh.work&quot;\\nexport ANTHROPIC_API_KEY=&quot;your-openrouter-api-key&quot;')">Copy</button>
                 </div>
                 <p><strong>Optional:</strong> Configure specific models (browse at <a href="https://openrouter.ai/models" target="_blank">openrouter.ai/models</a>):</p>
                 <div class="code-block-wrapper">

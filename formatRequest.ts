@@ -7,7 +7,6 @@ interface MessageCreateParamsBase {
   stream?: boolean;
 }
 
-
 /**
  * Validates OpenAI format messages to ensure complete tool_calls/tool message pairing.
  * Requires tool messages to immediately follow assistant messages with tool_calls.
@@ -15,15 +14,15 @@ interface MessageCreateParamsBase {
  */
 function validateOpenAIToolCalls(messages: any[]): any[] {
   const validatedMessages: any[] = [];
-  
+
   for (let i = 0; i < messages.length; i++) {
     const currentMessage = { ...messages[i] };
-    
+
     // Process assistant messages with tool_calls
     if (currentMessage.role === "assistant" && currentMessage.tool_calls) {
       const validToolCalls: any[] = [];
       const removedToolCallIds: string[] = [];
-      
+
       // Collect all immediately following tool messages
       const immediateToolMessages: any[] = [];
       let j = i + 1;
@@ -31,85 +30,84 @@ function validateOpenAIToolCalls(messages: any[]): any[] {
         immediateToolMessages.push(messages[j]);
         j++;
       }
-      
+
       // For each tool_call, check if there's an immediately following tool message
       currentMessage.tool_calls.forEach((toolCall: any) => {
-        const hasImmediateToolMessage = immediateToolMessages.some(toolMsg => 
-          toolMsg.tool_call_id === toolCall.id
+        const hasImmediateToolMessage = immediateToolMessages.some(
+          (toolMsg) => toolMsg.tool_call_id === toolCall.id,
         );
-        
+
         if (hasImmediateToolMessage) {
           validToolCalls.push(toolCall);
         } else {
           removedToolCallIds.push(toolCall.id);
         }
       });
-      
+
       // Update the assistant message
       if (validToolCalls.length > 0) {
         currentMessage.tool_calls = validToolCalls;
       } else {
         delete currentMessage.tool_calls;
       }
-      
-      
+
       // Only include message if it has content or valid tool_calls
       if (currentMessage.content || currentMessage.tool_calls) {
         validatedMessages.push(currentMessage);
       }
     }
-    
+
     // Process tool messages
     else if (currentMessage.role === "tool") {
       let hasImmediateToolCall = false;
-      
+
       // Check if the immediately preceding assistant message has matching tool_call
       if (i > 0) {
         const prevMessage = messages[i - 1];
         if (prevMessage.role === "assistant" && prevMessage.tool_calls) {
-          hasImmediateToolCall = prevMessage.tool_calls.some((toolCall: any) => 
-            toolCall.id === currentMessage.tool_call_id
+          hasImmediateToolCall = prevMessage.tool_calls.some(
+            (toolCall: any) => toolCall.id === currentMessage.tool_call_id,
           );
         } else if (prevMessage.role === "tool") {
           // Check for assistant message before the sequence of tool messages
           for (let k = i - 1; k >= 0; k--) {
             if (messages[k].role === "tool") continue;
             if (messages[k].role === "assistant" && messages[k].tool_calls) {
-              hasImmediateToolCall = messages[k].tool_calls.some((toolCall: any) => 
-                toolCall.id === currentMessage.tool_call_id
+              hasImmediateToolCall = messages[k].tool_calls.some(
+                (toolCall: any) => toolCall.id === currentMessage.tool_call_id,
               );
             }
             break;
           }
         }
       }
-      
+
       if (hasImmediateToolCall) {
         validatedMessages.push(currentMessage);
       }
     }
-    
+
     // For all other message types, include as-is
     else {
       validatedMessages.push(currentMessage);
     }
   }
-  
+
   return validatedMessages;
 }
 
 export function mapModel(anthropicModel: string): string {
   // If model already contains '/', it's an OpenRouter model ID - return as-is
-  if (anthropicModel.includes('/')) {
+  if (anthropicModel.includes("/")) {
     return anthropicModel;
   }
-  
-  if (anthropicModel.includes('haiku')) {
-    return 'anthropic/claude-3.5-haiku';
-  } else if (anthropicModel.includes('sonnet')) {
-    return 'anthropic/claude-sonnet-4';
-  } else if (anthropicModel.includes('opus')) {
-    return 'anthropic/claude-opus-4';
+
+  if (anthropicModel.includes("haiku")) {
+    return "z-ai/glm-4.6";
+  } else if (anthropicModel.includes("sonnet")) {
+    return "z-ai/glm-4.6";
+  } else if (anthropicModel.includes("opus")) {
+    return "z-ai/glm-4.6";
   }
   return anthropicModel;
 }
@@ -141,9 +139,10 @@ export function formatAnthropicToOpenAI(body: MessageCreateParamsBase): any {
 
           anthropicMessage.content.forEach((contentPart) => {
             if (contentPart.type === "text") {
-              textContent += (typeof contentPart.text === "string"
-                ? contentPart.text
-                : JSON.stringify(contentPart.text)) + "\n";
+              textContent +=
+                (typeof contentPart.text === "string"
+                  ? contentPart.text
+                  : JSON.stringify(contentPart.text)) + "\n";
             } else if (contentPart.type === "tool_use") {
               toolCalls.push({
                 id: contentPart.id,
@@ -163,7 +162,11 @@ export function formatAnthropicToOpenAI(body: MessageCreateParamsBase): any {
           if (toolCalls.length > 0) {
             assistantMessage.tool_calls = toolCalls;
           }
-          if (assistantMessage.content || (assistantMessage.tool_calls && assistantMessage.tool_calls.length > 0)) {
+          if (
+            assistantMessage.content ||
+            (assistantMessage.tool_calls &&
+              assistantMessage.tool_calls.length > 0)
+          ) {
             openAiMessagesFromThisAnthropicMessage.push(assistantMessage);
           }
         } else if (anthropicMessage.role === "user") {
@@ -172,16 +175,18 @@ export function formatAnthropicToOpenAI(body: MessageCreateParamsBase): any {
 
           anthropicMessage.content.forEach((contentPart) => {
             if (contentPart.type === "text") {
-              userTextMessageContent += (typeof contentPart.text === "string"
-                ? contentPart.text
-                : JSON.stringify(contentPart.text)) + "\n";
+              userTextMessageContent +=
+                (typeof contentPart.text === "string"
+                  ? contentPart.text
+                  : JSON.stringify(contentPart.text)) + "\n";
             } else if (contentPart.type === "tool_result") {
               subsequentToolMessages.push({
                 role: "tool",
                 tool_call_id: contentPart.tool_use_id,
-                content: typeof contentPart.content === "string"
-                  ? contentPart.content
-                  : JSON.stringify(contentPart.content),
+                content:
+                  typeof contentPart.content === "string"
+                    ? contentPart.content
+                    : JSON.stringify(contentPart.content),
               });
             }
           });
@@ -193,7 +198,9 @@ export function formatAnthropicToOpenAI(body: MessageCreateParamsBase): any {
               content: trimmedUserText,
             });
           }
-          openAiMessagesFromThisAnthropicMessage.push(...subsequentToolMessages);
+          openAiMessagesFromThisAnthropicMessage.push(
+            ...subsequentToolMessages,
+          );
         }
         return openAiMessagesFromThisAnthropicMessage;
       })
@@ -203,30 +210,43 @@ export function formatAnthropicToOpenAI(body: MessageCreateParamsBase): any {
     ? system.map((item) => {
         const content: any = {
           type: "text",
-          text: item.text
+          text: item.text,
         };
-        if (model.includes('claude')) {
-          content.cache_control = {"type": "ephemeral"};
+        if (model.includes("claude")) {
+          content.cache_control = { type: "ephemeral" };
         }
         return {
           role: "system",
-          content: [content]
+          content: [content],
         };
       })
-    : [{
-        role: "system",
-        content: [{
-          type: "text",
-          text: system,
-          ...(model.includes('claude') ? { cache_control: {"type": "ephemeral"} } : {})
-        }]
-      }];
+    : [
+        {
+          role: "system",
+          content: [
+            {
+              type: "text",
+              text: system,
+              ...(model.includes("claude")
+                ? { cache_control: { type: "ephemeral" } }
+                : {}),
+            },
+          ],
+        },
+      ];
 
   const data: any = {
     model: mapModel(model),
     messages: [...systemMessages, ...openAIMessages],
     temperature,
     stream,
+    provider: {
+      only: ["z-ai"],
+      ignore: ["deepinfra", "chutes", "novita"],
+      allow_fallbacks: false,
+      data_collection: "deny",
+      zdr: true,
+    },
   };
 
   if (tools) {
@@ -241,7 +261,10 @@ export function formatAnthropicToOpenAI(body: MessageCreateParamsBase): any {
   }
 
   // Validate OpenAI messages to ensure complete tool_calls/tool message pairing
-  data.messages = [...systemMessages, ...validateOpenAIToolCalls(openAIMessages)];
+  data.messages = [
+    ...systemMessages,
+    ...validateOpenAIToolCalls(openAIMessages),
+  ];
 
   return data;
 }

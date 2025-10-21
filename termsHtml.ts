@@ -1,4 +1,4 @@
-import { faviconDataUrl } from './faviconServer';
+import { faviconDataUrl } from "./faviconServer";
 
 export const termsHtml = `<!DOCTYPE html>
 <html lang="en">
@@ -123,7 +123,7 @@ export const termsHtml = `<!DOCTYPE html>
         <div class="last-updated">Last updated: July 12, 2025</div>
 
         <div class="highlight">
-            <strong>Important:</strong> By using y-router (cc.yovy.app), you acknowledge that this is a third-party service not affiliated with Anthropic, OpenAI, or OpenRouter. You use this service at your own risk.
+            <strong>Important:</strong> By using y-router (cc.brkh.work), you acknowledge that this is a third-party service not affiliated with Anthropic, OpenAI, or OpenRouter. You use this service at your own risk.
         </div>
 
         <h2>1. Service Description</h2>
