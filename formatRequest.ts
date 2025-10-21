@@ -7,6 +7,11 @@ interface MessageCreateParamsBase {
   stream?: boolean;
 }
 
+type AnthropicContentPart =
+  | { type: "text"; text: string }
+  | { type: "tool_use"; id: string; name: string; input: object }
+  | { type: "tool_result"; tool_use_id: string; content: string };
+
 /**
  * Validates OpenAI format messages to ensure complete tool_calls/tool message pairing.
  * Requires tool messages to immediately follow assistant messages with tool_calls.
@@ -137,23 +142,25 @@ export function formatAnthropicToOpenAI(body: MessageCreateParamsBase): any {
           let textContent = "";
           const toolCalls: any[] = [];
 
-          anthropicMessage.content.forEach((contentPart) => {
-            if (contentPart.type === "text") {
-              textContent +=
-                (typeof contentPart.text === "string"
-                  ? contentPart.text
-                  : JSON.stringify(contentPart.text)) + "\n";
-            } else if (contentPart.type === "tool_use") {
-              toolCalls.push({
-                id: contentPart.id,
-                type: "function",
-                function: {
-                  name: contentPart.name,
-                  arguments: JSON.stringify(contentPart.input),
-                },
-              });
-            }
-          });
+          anthropicMessage.content.forEach(
+            (contentPart: AnthropicContentPart) => {
+              if (contentPart.type === "text") {
+                textContent +=
+                  (typeof contentPart.text === "string"
+                    ? contentPart.text
+                    : JSON.stringify(contentPart.text)) + "\n";
+              } else if (contentPart.type === "tool_use") {
+                toolCalls.push({
+                  id: contentPart.id,
+                  type: "function",
+                  function: {
+                    name: contentPart.name,
+                    arguments: JSON.stringify(contentPart.input),
+                  },
+                });
+              }
+            },
+          );
 
           const trimmedTextContent = textContent.trim();
           if (trimmedTextContent.length > 0) {
@@ -173,23 +180,25 @@ export function formatAnthropicToOpenAI(body: MessageCreateParamsBase): any {
           let userTextMessageContent = "";
           const subsequentToolMessages: any[] = [];
 
-          anthropicMessage.content.forEach((contentPart) => {
-            if (contentPart.type === "text") {
-              userTextMessageContent +=
-                (typeof contentPart.text === "string"
-                  ? contentPart.text
-                  : JSON.stringify(contentPart.text)) + "\n";
-            } else if (contentPart.type === "tool_result") {
-              subsequentToolMessages.push({
-                role: "tool",
-                tool_call_id: contentPart.tool_use_id,
-                content:
-                  typeof contentPart.content === "string"
-                    ? contentPart.content
-                    : JSON.stringify(contentPart.content),
-              });
-            }
-          });
+          anthropicMessage.content.forEach(
+            (contentPart: AnthropicContentPart) => {
+              if (contentPart.type === "text") {
+                userTextMessageContent +=
+                  (typeof contentPart.text === "string"
+                    ? contentPart.text
+                    : JSON.stringify(contentPart.text)) + "\n";
+              } else if (contentPart.type === "tool_result") {
+                subsequentToolMessages.push({
+                  role: "tool",
+                  tool_call_id: contentPart.tool_use_id,
+                  content:
+                    typeof contentPart.content === "string"
+                      ? contentPart.content
+                      : JSON.stringify(contentPart.content),
+                });
+              }
+            },
+          );
 
           const trimmedUserText = userTextMessageContent.trim();
           if (trimmedUserText.length > 0) {
