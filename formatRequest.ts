@@ -116,7 +116,7 @@ export function mapModel(anthropicModel: string): string {
     }
 
     if (anthropicModel.includes("haiku")) {
-        return "z-ai/glm-4.6:exacto";
+        return "z-ai/glm-4.5-air:free";
     } else if (anthropicModel.includes("sonnet")) {
         return "z-ai/glm-4.6:exacto";
     } else if (anthropicModel.includes("opus")) {
@@ -261,6 +261,7 @@ export function formatAnthropicToOpenAI(body: MessageCreateParamsBase): any {
           ];
 
     const mappedModel = mapModel(model);
+    const isChimera = mappedModel === "tngtech/deepseek-r1t2-chimera:free";
     const data: any = {
         model: mappedModel,
         messages: [...systemMessages, ...openAIMessages],
@@ -276,6 +277,13 @@ export function formatAnthropicToOpenAI(body: MessageCreateParamsBase): any {
             data_collection: "deny",
             zdr: true,
         },
+        "z-ai/glm-4.5-air:free": {
+            only: ["z-ai"],
+            ignore: ["deepinfra", "chutes", "novita"],
+            allow_fallbacks: false,
+            // data_collection: "deny",
+            // zdr: true,
+        },
         "tngtech/deepseek-r1t2-chimera:free": {
             only: ["chutes"],
             ignore: ["deepinfra", "novita"],
@@ -289,7 +297,7 @@ export function formatAnthropicToOpenAI(body: MessageCreateParamsBase): any {
         data.provider = modelProviderConfigs[mappedModel];
     }
 
-    if (tools) {
+    if (tools && !isChimera) {
         data.tools = tools.map((item: any) => ({
             type: "function",
             function: {
@@ -300,11 +308,23 @@ export function formatAnthropicToOpenAI(body: MessageCreateParamsBase): any {
         }));
     }
 
-    // Validate OpenAI messages to ensure complete tool_calls/tool message pairing
-    data.messages = [
-        ...systemMessages,
-        ...validateOpenAIToolCalls(openAIMessages),
-    ];
+    // Strip tool-related messages for Chimera
+    const finalMessages = isChimera
+        ? [...systemMessages, ...openAIMessages]
+              .map((message) => {
+                  // Remove tool_calls from assistant messages
+                  if (message.role === "assistant" && message.tool_calls) {
+                      const { tool_calls, ...rest } = message;
+                      return rest;
+                  }
+                  // Remove tool messages entirely
+                  if (message.role === "tool") return null;
+                  return message;
+              })
+              .filter(Boolean)
+        : [...systemMessages, ...validateOpenAIToolCalls(openAIMessages)];
+
+    data.messages = finalMessages;
 
     return data;
 }
