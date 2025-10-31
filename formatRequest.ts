@@ -1,35 +1,3 @@
-// Type declarations for missing built-in types
-interface Map<K, V> {
-    size: number;
-    set(key: K, value: V): this;
-    get(key: K): V | undefined;
-    has(key: K): boolean;
-    delete(key: K): boolean;
-    clear(): void;
-    forEach(
-        callbackfn: (value: V, key: K, map: Map<K, V>) => void,
-        thisArg?: any,
-    ): void;
-}
-
-interface Set<T> {
-    size: number;
-    add(value: T): this;
-    has(value: T): boolean;
-    delete(value: T): boolean;
-    clear(): void;
-    forEach(
-        callbackfn: (value: T, value2: T, set: Set<T>) => void,
-        thisArg?: any,
-    ): void;
-}
-
-declare global {
-    interface String {
-        includes(searchString: string): boolean;
-    }
-}
-
 /**
  * Represents a tool call in OpenAI format
  */
@@ -336,7 +304,7 @@ function validateOpenAIToolCalls(messages: OpenAIMessage[]): OpenAIMessage[] {
  */
 const MODEL_MAPPING = {
     haiku: "z-ai/glm-4.5-air:free",
-    sonnet: "z-ai/glm-4.6:exacto",
+    sonnet: "z-ai/glm-4.5-air:free",
     opus: "tngtech/deepseek-r1t2-chimera:free",
 } as const;
 
@@ -569,9 +537,20 @@ export function formatAnthropicToOpenAI(body: MessageCreateParamsBase): any {
             // data_collection: "allow",
             // zdr: false,
         },
-    };
+    } as const;
 
-    if (modelProviderConfigs[mappedModel]) {
+    type ModelProviderConfigMap = typeof modelProviderConfigs;
+    type ModelProviderKey = keyof ModelProviderConfigMap;
+    type ProviderConfig = ModelProviderConfigMap[ModelProviderKey];
+
+    function isKnownProviderModel(model: string): model is ModelProviderKey {
+        return Object.prototype.hasOwnProperty.call(
+            modelProviderConfigs,
+            model,
+        );
+    }
+
+    if (isKnownProviderModel(mappedModel)) {
         data.provider = modelProviderConfigs[mappedModel];
     }
 
